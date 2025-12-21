@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<h2>Make Transaction</h2>
+
+<p>Card ID: <span th:text="${card.cardId}"></span></p>
+<p>Available Balance: <span th:text="${card.availableBalance}"></span></p>
+
+<form action="/transactions/create" method="post">
+
+    <input type="hidden" name="cardId" th:value="${card.cardId}" />
+
+    <label>Merchant Name:</label>
+    <input type="text" name="merchantName" required /><br><br>
+
+    <label>Amount:</label>
+    <input type="number" name="amount" required /><br><br>
+
+    <button type="submit">Submit Transaction</button>
+</form>
+
+</body>
+</html>

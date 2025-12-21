@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Card Details</title>
+</head>
+<body>
+
+<h2>Card Details</h2>
+
+<p><b>Card Number:</b> <span th:text="${card.cardNumber}"></span></p>
+<p><b>Card Type:</b> <span th:text="${card.cardType}"></span></p>
+<p><b>Credit Limit:</b> ₹<span th:text="${card.creditLimit}"></span></p>
+<p><b>Available Balance:</b> ₹<span th:text="${card.availableBalance}"></span></p>
+<p><b>Status:</b> <span th:text="${card.status}"></span></p>
+
+<br>
+
+<a th:href="@{/transactions/new/{id}(id=${card.cardId})}">
+    Make Transaction
+</a>
+
+<br><br>
+
+<a th:href="@{/billing/current/{id}(id=${card.cardId})}">
+    View Current Bill
+</a>
+
+</body>
+</html>

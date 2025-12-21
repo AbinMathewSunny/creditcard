@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>Bill Details</title>
+</head>
+<body>
+
+<h2>Current Bill</h2>
+
+<!-- If bill exists -->
+<div th:if="${bill != null}">
+
+  <p><b>Bill ID:</b> <span th:text="${bill.billId}"></span></p>
+  <p><b>Total Amount:</b> ₹<span th:text="${bill.totalAmount}"></span></p>
+  <p><b>Status:</b> <span th:text="${bill.status}"></span></p>
+  <p><b>Due Date:</b> <span th:text="${bill.dueDate}"></span></p>
+
+  <form th:action="@{/payments/pay/{id}(id=${bill.billId})}" method="post">
+    <button type="submit">Pay Bill</button>
+  </form>
+
+</div>
+
+<!-- If no active bill -->
+<div th:if="${message != null}">
+  <p th:text="${message}"></p>
+</div>
+
+<br>
+<a th:href="@{/cards/details/{id}(id=${card.cardId})}">
+  View Card Details
+</a>
+
+</body>
+</html>
