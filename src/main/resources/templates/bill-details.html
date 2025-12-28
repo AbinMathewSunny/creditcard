@@ -1,35 +1,363 @@
+<!--&lt;!&ndash; html &ndash;&gt;-->
+<!--<!DOCTYPE html>-->
+<!--<html xmlns:th="http://www.thymeleaf.org">-->
+<!--<head>-->
+<!--  <meta charset="utf-8" />-->
+<!--  <meta name="viewport" content="width=device-width, initial-scale=1" />-->
+<!--  <title>Bill Details</title>-->
+
+<!--  &lt;!&ndash; Bootstrap CSS &ndash;&gt;-->
+<!--  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">-->
+
+<!--</head>-->
+<!--<body>-->
+
+<!--<nav class="navbar navbar-dark bg-primary">-->
+<!--  <div class="container">-->
+<!--    <span class="navbar-brand mb-0 h1">Billing Center</span>-->
+<!--  </div>-->
+<!--</nav>-->
+
+<!--<main class="container my-4">-->
+<!--  <div class="card shadow-sm">-->
+<!--    <div class="card-body">-->
+<!--      <h5 class="card-title mb-3">Current Bill</h5>-->
+
+<!--      &lt;!&ndash; If bill exists &ndash;&gt;-->
+<!--      <div th:if="${bill != null}">-->
+
+<!--        <div class="row g-3">-->
+<!--          <div class="col-12 col-sm-6 col-md-3">-->
+<!--            <div class="text-muted small">Bill ID</div>-->
+<!--            <div class="fw-semibold" th:text="${bill.billId}"></div>-->
+<!--          </div>-->
+
+<!--          <div class="col-12 col-sm-6 col-md-3">-->
+<!--            <div class="text-muted small">Total Amount</div>-->
+<!--            <div class="fw-semibold">₹<span th:text="${bill.totalAmount}"></span></div>-->
+<!--          </div>-->
+
+<!--          <div class="col-12 col-sm-6 col-md-3">-->
+<!--            <div class="text-muted small">Status</div>-->
+<!--            <div class="fw-semibold" th:text="${bill.status}"></div>-->
+<!--          </div>-->
+
+<!--          <div class="col-12 col-sm-6 col-md-3">-->
+<!--            <div class="text-muted small">Due Date</div>-->
+<!--            <div class="fw-semibold" th:text="${bill.dueDate}"></div>-->
+<!--          </div>-->
+<!--        </div>-->
+
+<!--        <div class="mt-4 d-flex flex-wrap gap-2">-->
+<!--          <form th:action="@{/payments/pay/{id}(id=${bill.billId})}" method="post" id="payForm" class="m-0">-->
+<!--            <button type="submit" class="btn btn-primary">Pay Bill</button>-->
+<!--          </form>-->
+
+<!--          <a th:href="@{/cards/details/{id}(id=${card.cardId})}" class="btn btn-outline-primary">View Card Details</a>-->
+<!--        </div>-->
+<!--      </div>-->
+
+<!--      &lt;!&ndash; If no active bill &ndash;&gt;-->
+<!--      <div th:if="${message != null}">-->
+<!--        <div class="alert alert-info mb-2" th:text="${message}"></div>-->
+<!--        <a th:href="@{/cards/details/{id}(id=${card.cardId})}" class="btn btn-link p-0">View Card Details</a>-->
+<!--      </div>-->
+
+<!--    </div>-->
+<!--  </div>-->
+
+<!--  <footer class="text-center text-muted small mt-3">Secure payments • All amounts shown in INR</footer>-->
+<!--</main>-->
+
+<!--&lt;!&ndash; jQuery (optional, used here for simple confirmation) &ndash;&gt;-->
+<!--<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>-->
+<!--&lt;!&ndash; Bootstrap JS &ndash;&gt;-->
+<!--<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>-->
+
+<!--<script>-->
+<!--  // simple confirmation before submitting payment-->
+<!--  $(function () {-->
+<!--    $('#payForm').on('submit', function (e) {-->
+<!--      if (!confirm('Are you sure you want to pay this bill?')) {-->
+<!--        e.preventDefault();-->
+<!--      }-->
+<!--    });-->
+<!--  });-->
+<!--</script>-->
+
+<!--</body>-->
+<!--</html>-->
+
+
+
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Bill Details</title>
+
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <style>
+    :root {
+      --primary-blue: #2563eb;
+      --light-blue: #3b82f6;
+      --lighter-blue: #60a5fa;
+      --bg-blue: #eff6ff;
+      --dark-blue: #1e40af;
+    }
+
+    body {
+      background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+      min-height: 100vh;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .navbar {
+      background: linear-gradient(135deg, var(--primary-blue) 0%, var(--dark-blue) 100%) !important;
+      padding: 1.2rem 0;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+    }
+
+    .navbar-brand {
+      font-size: 1.5rem;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+
+    .card {
+      border: none;
+      border-radius: 20px;
+      overflow: hidden;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      background: white;
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 20px 40px rgba(37, 99, 235, 0.15) !important;
+    }
+
+    .card-title {
+      color: var(--primary-blue);
+      font-weight: 700;
+      font-size: 1.8rem;
+      margin-bottom: 2rem;
+      position: relative;
+      padding-bottom: 0.5rem;
+    }
+
+    .card-title::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 60px;
+      height: 4px;
+      background: linear-gradient(90deg, var(--primary-blue), var(--lighter-blue));
+      border-radius: 2px;
+    }
+
+    .info-box {
+      background: var(--bg-blue);
+      padding: 1.5rem;
+      border-radius: 15px;
+      border-left: 4px solid var(--primary-blue);
+      transition: all 0.3s ease;
+    }
+
+    .info-box:hover {
+      background: #dbeafe;
+      transform: translateX(5px);
+    }
+
+    .info-label {
+      color: #64748b;
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 0.5rem;
+    }
+
+    .info-value {
+      color: var(--dark-blue);
+      font-size: 1.3rem;
+      font-weight: 700;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary-blue), var(--light-blue));
+      border: none;
+      padding: 0.8rem 2rem;
+      border-radius: 12px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
+      background: linear-gradient(135deg, var(--light-blue), var(--lighter-blue));
+    }
+
+    .btn-outline-primary {
+      color: var(--primary-blue);
+      border: 2px solid var(--primary-blue);
+      padding: 0.8rem 2rem;
+      border-radius: 12px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      transition: all 0.3s ease;
+    }
+
+    .btn-outline-primary:hover {
+      background: var(--primary-blue);
+      border-color: var(--primary-blue);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(37, 99, 235, 0.3);
+    }
+
+    .alert-info {
+      background: linear-gradient(135deg, #dbeafe 0%, #eff6ff 100%);
+      border: 2px solid var(--lighter-blue);
+      border-radius: 15px;
+      color: var(--dark-blue);
+      padding: 1.2rem;
+      font-weight: 500;
+    }
+
+    .btn-link {
+      color: var(--primary-blue);
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.3s ease;
+    }
+
+    .btn-link:hover {
+      color: var(--light-blue);
+      text-decoration: underline;
+    }
+
+    footer {
+      color: #64748b;
+      font-size: 0.9rem;
+      padding: 1.5rem 0;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    @media (max-width: 768px) {
+      .card-title {
+        font-size: 1.5rem;
+      }
+
+      .info-value {
+        font-size: 1.1rem;
+      }
+    }
+  </style>
 </head>
 <body>
 
-<h2>Current Bill</h2>
+<nav class="navbar navbar-dark">
+  <div class="container">
+    <span class="navbar-brand mb-0">💳 Billing Center</span>
+  </div>
+</nav>
 
-<!-- If bill exists -->
-<div th:if="${bill != null}">
+<main class="container my-5">
+  <div class="card shadow-lg">
+    <div class="card-body p-4 p-md-5">
+      <h5 class="card-title">Current Bill</h5>
 
-  <p><b>Bill ID:</b> <span th:text="${bill.billId}"></span></p>
-  <p><b>Total Amount:</b> ₹<span th:text="${bill.totalAmount}"></span></p>
-  <p><b>Status:</b> <span th:text="${bill.status}"></span></p>
-  <p><b>Due Date:</b> <span th:text="${bill.dueDate}"></span></p>
+      <!-- If bill exists -->
+      <div th:if="${bill != null}">
 
-  <form th:action="@{/payments/pay/{id}(id=${bill.billId})}" method="post">
-    <button type="submit">Pay Bill</button>
-  </form>
+        <div class="row g-4 mb-4">
+          <div class="col-12 col-sm-6 col-lg-3">
+            <div class="info-box">
+              <div class="info-label">Bill ID</div>
+              <div class="info-value" th:text="${bill.billId}">#12345</div>
+            </div>
+          </div>
 
-</div>
+          <div class="col-12 col-sm-6 col-lg-3">
+            <div class="info-box">
+              <div class="info-label">Total Amount</div>
+              <div class="info-value">₹<span th:text="${bill.totalAmount}">1,250</span></div>
+            </div>
+          </div>
 
-<!-- If no active bill -->
-<div th:if="${message != null}">
-  <p th:text="${message}"></p>
-</div>
+          <div class="col-12 col-sm-6 col-lg-3">
+            <div class="info-box">
+              <div class="info-label">Status</div>
+              <div class="info-value">
+                <span class="status-badge" style="background: #dbeafe; color: var(--dark-blue);" th:text="${bill.status}">Pending</span>
+              </div>
+            </div>
+          </div>
 
-<br>
-<a th:href="@{/cards/details/{id}(id=${card.cardId})}">
-  View Card Details
-</a>
+          <div class="col-12 col-sm-6 col-lg-3">
+            <div class="info-box">
+              <div class="info-label">Due Date</div>
+              <div class="info-value" th:text="${bill.dueDate}">Dec 31, 2024</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-5 d-flex flex-wrap gap-3">
+          <form th:action="@{/payments/pay/{id}(id=${bill.billId})}" method="post" id="payForm" class="m-0">
+            <button type="submit" class="btn btn-primary">
+              💰 Pay Bill Now
+            </button>
+          </form>
+
+          <a th:href="@{/cards/details/{id}(id=${card.cardId})}" class="btn btn-outline-primary">
+            📋 View Card Details
+          </a>
+        </div>
+      </div>
+
+      <!-- If no active bill -->
+      <div th:if="${message != null}">
+        <div class="alert alert-info mb-3" th:text="${message}">No active bills at this time.</div>
+        <a th:href="@{/cards/details/{id}(id=${card.cardId})}" class="btn-link">
+          ← View Card Details
+        </a>
+      </div>
+
+    </div>
+  </div>
+
+  <footer class="text-center mt-4">
+    🔒 Secure payments • All amounts shown in INR
+  </footer>
+</main>
+
+<script>
+  // Simple confirmation before submitting payment
+  document.addEventListener('DOMContentLoaded', function() {
+    const payForm = document.getElementById('payForm');
+    if (payForm) {
+      payForm.addEventListener('submit', function(e) {
+        if (!confirm('Are you sure you want to pay this bill?')) {
+          e.preventDefault();
+        }
+      });
+    }
+  });
+</script>
 
 </body>
 </html>

@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Secure Payment</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-blue: #2563eb;
+            --light-blue: #3b82f6;
+            --lighter-blue: #60a5fa;
+            --bg-blue: #eff6ff;
+            --dark-blue: #1e40af;
+            --success-green: #10b981;
+            --warning-orange: #f59e0b;
+        }
+
+        body {
+            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--dark-blue) 100%) !important;
+            padding: 1.2rem 0;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+        }
+
+        .navbar-brand {
+            font-size: 1.5rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .payment-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .card {
+            border: none;
+            border-radius: 20px;
+            overflow: hidden;
+            background: white;
+            box-shadow: 0 10px 30px rgba(37, 99, 235, 0.1);
+        }
+
+        .card-header-custom {
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--light-blue) 100%);
+            color: white;
+            padding: 1.5rem;
+            font-weight: 600;
+            font-size: 1.2rem;
+        }
+
+        .summary-box {
+            background: var(--bg-blue);
+            padding: 1.5rem;
+            border-radius: 15px;
+            margin-bottom: 1rem;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.8rem;
+            color: #64748b;
+        }
+
+        .summary-row.total {
+            border-top: 2px solid var(--primary-blue);
+            padding-top: 1rem;
+            margin-top: 1rem;
+            font-weight: 700;
+            font-size: 1.3rem;
+            color: var(--dark-blue);
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: var(--dark-blue);
+            margin-bottom: 0.5rem;
+        }
+
+        .form-control, .form-select {
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 0.8rem 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .payment-method {
+            border: 2px solid #e2e8f0;
+            border-radius: 15px;
+            padding: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 1rem;
+        }
+
+        .payment-method:hover {
+            border-color: var(--lighter-blue);
+            background: var(--bg-blue);
+        }
+
+        .payment-method.active {
+            border-color: var(--primary-blue);
+            background: var(--bg-blue);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .payment-method input[type="radio"] {
+            width: 20px;
+            height: 20px;
+            accent-color: var(--primary-blue);
+        }
+
+        .payment-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary-blue), var(--light-blue));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+        }
+
+        .btn-pay {
+            background: linear-gradient(135deg, var(--success-green), #34d399);
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+            width: 100%;
+        }
+
+        .btn-pay:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+            background: linear-gradient(135deg, #34d399, #6ee7b7);
+        }
+
+        .btn-pay:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-cancel {
+            background: white;
+            border: 2px solid #e2e8f0;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            font-weight: 600;
+            color: #64748b;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .btn-cancel:hover {
+            border-color: var(--primary-blue);
+            color: var(--primary-blue);
+        }
+
+        .security-badge {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--success-green);
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-top: 1rem;
+        }
+
+        .card-preview {
+            background: linear-gradient(135deg, var(--dark-blue), var(--primary-blue));
+            border-radius: 15px;
+            padding: 1.5rem;
+            color: white;
+            margin-bottom: 1.5rem;
+            min-height: 180px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card-preview::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 200px;
+            height: 200px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+        }
+
+        .card-number-preview {
+            font-size: 1.3rem;
+            letter-spacing: 3px;
+            margin: 1.5rem 0;
+            font-weight: 600;
+        }
+
+        .card-info-preview {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+        }
+
+        .input-group-icon {
+            position: relative;
+        }
+
+        .input-icon {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.2rem;
+        }
+
+        .processing-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .processing-overlay.active {
+            display: flex;
+        }
+
+        .processing-content {
+            background: white;
+            padding: 3rem;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 400px;
+        }
+
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid var(--bg-blue);
+            border-top: 4px solid var(--primary-blue);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1.5rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .success-checkmark {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: var(--success-green);
+            margin: 0 auto 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            color: white;
+            animation: scaleIn 0.5s ease;
+        }
+
+        @keyframes scaleIn {
+            0% { transform: scale(0); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        @media (max-width: 768px) {
+            .card-number-preview {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-dark">
+    <div class="container">
+        <span class="navbar-brand mb-0">🔒 Secure Payment</span>
+    </div>
+</nav>
+
+<main class="container payment-container my-5">
+    <div class="row g-4">
+
+        <!-- Payment Form Section -->
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header-custom">
+                    💳 Payment Details
+                </div>
+                <div class="card-body p-4">
+
+                    <!-- Payment Methods -->
+                    <div class="mb-4">
+                        <label class="form-label">Select Payment Method</label>
+
+                        <div class="payment-method active" data-method="card">
+                            <div class="d-flex align-items-center gap-3">
+                                <input type="radio" name="paymentMethod" value="card" checked>
+                                <div class="payment-icon">💳</div>
+                                <div>
+                                    <div class="fw-bold">Credit / Debit Card</div>
+                                    <small class="text-muted">Visa, Mastercard, Rupay</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="payment-method" data-method="upi">
+                            <div class="d-flex align-items-center gap-3">
+                                <input type="radio" name="paymentMethod" value="upi">
+                                <div class="payment-icon">📱</div>
+                                <div>
+                                    <div class="fw-bold">UPI</div>
+                                    <small class="text-muted">Google Pay, PhonePe, Paytm</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="payment-method" data-method="netbanking">
+                            <div class="d-flex align-items-center gap-3">
+                                <input type="radio" name="paymentMethod" value="netbanking">
+                                <div class="payment-icon">🏦</div>
+                                <div>
+                                    <div class="fw-bold">Net Banking</div>
+                                    <small class="text-muted">All major banks supported</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card Payment Form -->
+                    <div id="cardPaymentForm">
+                        <div class="card-preview">
+                            <div style="font-size: 0.9rem; opacity: 0.8;">Card Number</div>
+                            <div class="card-number-preview" id="cardNumberPreview">•••• •••• •••• ••••</div>
+                            <div class="card-info-preview">
+                                <div>
+                                    <div style="opacity: 0.8; font-size: 0.75rem;">CARDHOLDER</div>
+                                    <div id="cardNamePreview">YOUR NAME</div>
+                                </div>
+                                <div>
+                                    <div style="opacity: 0.8; font-size: 0.75rem;">EXPIRES</div>
+                                    <div id="cardExpiryPreview">MM/YY</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Card Number</label>
+                            <input type="text" class="form-control" id="cardNumber" placeholder="1234 5678 9012 3456" maxlength="19">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Cardholder Name</label>
+                            <input type="text" class="form-control" id="cardName" placeholder="John Doe">
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Expiry Date</label>
+                                <input type="text" class="form-control" id="expiryDate" placeholder="MM/YY" maxlength="5">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">CVV</label>
+                                <div class="input-group-icon">
+                                    <input type="password" class="form-control" id="cvv" placeholder="123" maxlength="3">
+                                    <span class="input-icon">🔒</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- UPI Form -->
+                    <div id="upiPaymentForm" style="display: none;">
+                        <div class="mb-3">
+                            <label class="form-label">UPI ID</label>
+                            <input type="text" class="form-control" placeholder="username@upi">
+                        </div>
+                        <div class="text-center my-4">
+                            <div class="mb-3 text-muted">OR</div>
+                            <button type="button" class="btn btn-outline-primary">Scan QR Code</button>
+                        </div>
+                    </div>
+
+                    <!-- Net Banking Form -->
+                    <div id="netbankingPaymentForm" style="display: none;">
+                        <div class="mb-3">
+                            <label class="form-label">Select Your Bank</label>
+                            <select class="form-select">
+                                <option>Select Bank</option>
+                                <option>State Bank of India</option>
+                                <option>HDFC Bank</option>
+                                <option>ICICI Bank</option>
+                                <option>Axis Bank</option>
+                                <option>Punjab National Bank</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="security-badge">
+                        <span>🔒</span>
+                        <span>Your payment information is encrypted and secure</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Order Summary Section -->
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header-custom">
+                    📋 Order Summary
+                </div>
+                <div class="card-body p-4">
+                    <div class="summary-box">
+                        <div class="summary-row">
+                            <span>Bill ID:</span>
+                            <span class="fw-bold">#12345</span>
+                        </div>
+                        <div class="summary-row">
+                            <span>Bill Amount:</span>
+                            <span>₹1,250.00</span>
+                        </div>
+                        <div class="summary-row">
+                            <span>Convenience Fee:</span>
+                            <span>₹10.00</span>
+                        </div>
+                        <div class="summary-row">
+                            <span>GST (18%):</span>
+                            <span>₹226.80</span>
+                        </div>
+                        <div class="summary-row total">
+                            <span>Total Amount:</span>
+                            <span>₹1,486.80</span>
+                        </div>
+                    </div>
+
+                    <button type="button" class="btn btn-pay" id="payButton">
+                        💰 Pay ₹1,486.80
+                    </button>
+
+                    <button type="button" class="btn btn-cancel mt-2">
+                        Cancel
+                    </button>
+
+                    <div class="mt-4 text-center small text-muted">
+                        <p class="mb-2">🔐 128-bit SSL Encrypted</p>
+                        <p class="mb-0">✓ PCI DSS Compliant</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- Processing Overlay -->
+<div class="processing-overlay" id="processingOverlay">
+    <div class="processing-content" id="processingContent">
+        <div class="spinner"></div>
+        <h4>Processing Payment...</h4>
+        <p class="text-muted">Please wait while we process your payment securely</p>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Payment method selection
+        const paymentMethods = document.querySelectorAll('.payment-method');
+        const cardForm = document.getElementById('cardPaymentForm');
+        const upiForm = document.getElementById('upiPaymentForm');
+        const netbankingForm = document.getElementById('netbankingPaymentForm');
+
+        paymentMethods.forEach(method => {
+            method.addEventListener('click', function() {
+                paymentMethods.forEach(m => m.classList.remove('active'));
+                this.classList.add('active');
+                this.querySelector('input[type="radio"]').checked = true;
+
+                const methodType = this.dataset.method;
+                cardForm.style.display = methodType === 'card' ? 'block' : 'none';
+                upiForm.style.display = methodType === 'upi' ? 'block' : 'none';
+                netbankingForm.style.display = methodType === 'netbanking' ? 'block' : 'none';
+            });
+        });
+
+        // Card number formatting and preview
+        const cardNumberInput = document.getElementById('cardNumber');
+        const cardNumberPreview = document.getElementById('cardNumberPreview');
+
+        cardNumberInput.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\s/g, '');
+            let formattedValue = value.match(/.{1,4}/g)?.join(' ') || '';
+            e.target.value = formattedValue;
+
+            if (value.length > 0) {
+                cardNumberPreview.textContent = formattedValue.padEnd(19, '•');
+            } else {
+                cardNumberPreview.textContent = '•••• •••• •••• ••••';
+            }
+        });
+
+        // Cardholder name preview
+        const cardNameInput = document.getElementById('cardName');
+        const cardNamePreview = document.getElementById('cardNamePreview');
+
+        cardNameInput.addEventListener('input', function(e) {
+            cardNamePreview.textContent = e.target.value.toUpperCase() || 'YOUR NAME';
+        });
+
+        // Expiry date formatting and preview
+        const expiryInput = document.getElementById('expiryDate');
+        const expiryPreview = document.getElementById('cardExpiryPreview');
+
+        expiryInput.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length >= 2) {
+                value = value.slice(0, 2) + '/' + value.slice(2, 4);
+            }
+            e.target.value = value;
+            expiryPreview.textContent = value || 'MM/YY';
+        });
+
+        // CVV input - only numbers
+        const cvvInput = document.getElementById('cvv');
+        cvvInput.addEventListener('input', function(e) {
+            e.target.value = e.target.value.replace(/\D/g, '');
+        });
+
+        // Payment processing
+        const payButton = document.getElementById('payButton');
+        const processingOverlay = document.getElementById('processingOverlay');
+        const processingContent = document.getElementById('processingContent');
+
+        payButton.addEventListener('click', function() {
+            // Show processing overlay
+            processingOverlay.classList.add('active');
+            payButton.disabled = true;
+
+            // Simulate payment processing
+            setTimeout(() => {
+                // Show success
+                processingContent.innerHTML = `
+          <div class="success-checkmark">✓</div>
+          <h4 style="color: var(--success-green);">Payment Successful!</h4>
+          <p class="text-muted">Your payment of ₹1,486.80 has been processed successfully.</p>
+          <p class="mb-0"><strong>Transaction ID:</strong> TXN${Date.now()}</p>
+        `;
+
+                // Redirect after 3 seconds
+                setTimeout(() => {
+                    processingOverlay.classList.remove('active');
+                    payButton.disabled = false;
+                    alert('Payment completed! Redirecting to bill details...');
+                }, 3000);
+            }, 2000);
+        });
+    });
+</script>
+
+</body>
+</html>

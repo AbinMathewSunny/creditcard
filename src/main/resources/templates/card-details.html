@@ -1,29 +1,91 @@
+<!-- html -->
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Card Details</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
-<body>
+<body class="bg-light">
 
-<h2>Card Details</h2>
+<nav class="navbar navbar-dark bg-primary">
+    <div class="container">
+        <span class="navbar-brand mb-0 h1">Card Center</span>
+    </div>
+</nav>
 
-<p><b>Card Number:</b> <span th:text="${card.cardNumber}"></span></p>
-<p><b>Card Type:</b> <span th:text="${card.cardType}"></span></p>
-<p><b>Credit Limit:</b> ₹<span th:text="${card.creditLimit}"></span></p>
-<p><b>Available Balance:</b> ₹<span th:text="${card.availableBalance}"></span></p>
-<p><b>Status:</b> <span th:text="${card.status}"></span></p>
+<main class="container my-4">
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h5 class="card-title mb-3 text-primary">Card Details</h5>
 
-<br>
+            <div class="row g-3">
+                <div class="col-12 col-md-6">
+                    <div class="text-muted small">Card Number</div>
+                    <div class="fw-semibold" th:text="${card.cardNumber}"></div>
+                </div>
 
-<a th:href="@{/transactions/new/{id}(id=${card.cardId})}">
-    Make Transaction
-</a>
+                <div class="col-12 col-md-6">
+                    <div class="text-muted small">Card Type</div>
+                    <div class="fw-semibold" th:text="${card.cardType}"></div>
+                </div>
 
-<br><br>
+                <div class="col-12 col-md-6">
+                    <div class="text-muted small">Credit Limit</div>
+                    <div class="fw-semibold">₹<span th:text="${card.creditLimit}"></span></div>
+                </div>
 
-<a th:href="@{/billing/current/{id}(id=${card.cardId})}">
-    View Current Bill
-</a>
+                <div class="col-12 col-md-6">
+                    <div class="text-muted small">Available Balance</div>
+                    <div class="fw-semibold">₹<span th:text="${card.availableBalance}"></span></div>
+                </div>
+
+                <div class="col-12 col-md-6">
+                    <div class="text-muted small">Status</div>
+                    <div class="fw-semibold" th:text="${card.status}"></div>
+                </div>
+            </div>
+
+            <div class="mt-4 d-flex flex-wrap gap-2">
+                <a th:href="@{/transactions/new/{id}(id=${card.cardId})}"
+                   class="btn btn-primary confirm-action"
+                   role="button"
+                   data-confirm="Start a transaction for this card?">
+                    Make Transaction
+                </a>
+
+                <a th:href="@{/billing/current/{id}(id=${card.cardId})}"
+                   class="btn btn-outline-primary confirm-action"
+                   role="button"
+                   data-confirm="View current bill for this card?">
+                    View Current Bill
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <footer class="text-center text-muted small mt-3">Secure actions • All amounts shown in INR</footer>
+</main>
+
+<!-- jQuery (optional, used for simple confirmation) -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    // optional confirmation for links/buttons with class .confirm-action
+    $(function () {
+        $('.confirm-action').on('click', function (e) {
+            const msg = $(this).data('confirm') || 'Are you sure?';
+            if (!confirm(msg)) {
+                e.preventDefault();
+            }
+        });
+    });
+</script>
 
 </body>
 </html>
