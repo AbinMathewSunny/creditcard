@@ -317,11 +317,13 @@
         </div>
 
         <div class="mt-5 d-flex flex-wrap gap-3">
-          <form th:action="@{/payments/pay/{id}(id=${bill.billId})}" method="post" id="payForm" class="m-0">
-            <button type="submit" class="btn btn-primary">
-              💰 Pay Bill Now
+          <form th:action="@{/payments/{billId}(billId=${bill.billId})}" method="get">
+            <button type="submit"
+                    th:disabled="${bill.totalAmount == 0}">
+              Pay Bill
             </button>
           </form>
+
 
           <a th:href="@{/cards/details/{id}(id=${card.cardId})}" class="btn btn-outline-primary">
             📋 View Card Details

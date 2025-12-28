@@ -17,9 +17,22 @@ public class Transaction {
     private String merchantName;
     private BigDecimal amount;
 
+
+    public boolean isBilled() {
+        return billed;
+    }
+
+    public void setBilled(boolean billed) {
+        this.billed = billed;
+    }
+
+    @Column(nullable = false)
+    private boolean billed = false;
+
     public LocalDateTime getTransactionDate() {
         return transactionDate;
     }
+
 
     public void setTransactionDate(LocalDateTime transactionDate) {
         this.transactionDate = transactionDate;

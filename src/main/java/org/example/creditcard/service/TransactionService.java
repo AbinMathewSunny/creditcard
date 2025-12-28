@@ -1,8 +1,8 @@
 package org.example.creditcard.service;
 
-import org.example.creditcard.model.entity.Bill;
 import org.example.creditcard.model.entity.Card;
 import org.example.creditcard.model.entity.Transaction;
+import org.example.creditcard.model.enums.CardStatus;
 import org.example.creditcard.model.enums.TransactionStatus;
 import org.example.creditcard.repository.TransactionRepository;
 import org.springframework.stereotype.Service;
@@ -15,16 +15,13 @@ public class TransactionService {
 
     private final TransactionRepository transactionRepository;
     private final CardService cardService;
-    private final BillingService billingService;
 
     public TransactionService(
             TransactionRepository transactionRepository,
-            CardService cardService,
-            BillingService billingService) {
+            CardService cardService) {
 
         this.transactionRepository = transactionRepository;
         this.cardService = cardService;
-        this.billingService = billingService;
     }
 
     public Transaction makeTransaction(
@@ -32,29 +29,33 @@ public class TransactionService {
             String merchantName,
             BigDecimal amount) {
 
-        if (card.getAvailableBalance().compareTo(amount) < 0) {
-            throw new RuntimeException("Insufficient balance");
+        // 🔒 Block transactions if card is blocked
+        if (card.getStatus() == CardStatus.BLOCKED) {
+            throw new RuntimeException(
+                    "Card is blocked. Pay your bill to continue transactions."
+            );
         }
 
-        // Deduct balance
-        card.setAvailableBalance(card.getAvailableBalance().subtract(amount));
+        // 💰 Check credit
+        if (card.getAvailableBalance().compareTo(amount) < 0) {
+            throw new RuntimeException("Insufficient credit");
+        }
+
+        // 💳 Deduct balance
+        card.setAvailableBalance(
+                card.getAvailableBalance().subtract(amount)
+        );
         cardService.updateCard(card);
 
-        // Create transaction
+        // 🧾 Create transaction (UNBILLED)
         Transaction transaction = new Transaction();
         transaction.setCard(card);
         transaction.setMerchantName(merchantName);
         transaction.setAmount(amount);
         transaction.setTransactionDate(LocalDateTime.now());
         transaction.setStatus(TransactionStatus.SUCCESS);
+        transaction.setBilled(false);   // ⭐ VERY IMPORTANT
 
-        Transaction savedTransaction = transactionRepository.save(transaction);
-
-        // Add to bill
-        Bill bill = billingService.getOrCreateActiveBill(card);
-        bill.setTotalAmount(bill.getTotalAmount().add(amount));
-        billingService.updateBill(bill);
-
-        return savedTransaction;
+        return transactionRepository.save(transaction);
     }
 }

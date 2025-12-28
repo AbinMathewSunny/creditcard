@@ -4,9 +4,13 @@ import org.example.creditcard.model.entity.Bill;
 import org.example.creditcard.model.entity.Card;
 import org.example.creditcard.model.entity.Payment;
 import org.example.creditcard.model.enums.BillStatus;
+import org.example.creditcard.model.enums.CardStatus;
 import org.example.creditcard.model.enums.PaymentStatus;
+import org.example.creditcard.repository.BillRepository;
+import org.example.creditcard.repository.CardRepository;
 import org.example.creditcard.repository.PaymentRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
@@ -14,34 +18,48 @@ import java.time.LocalDateTime;
 public class PaymentService {
 
     private final PaymentRepository paymentRepository;
-    private final CardService cardService;
+    private final BillRepository billRepository;
+    private final CardRepository cardRepository;
 
     public PaymentService(
             PaymentRepository paymentRepository,
-            CardService cardService) {
+            BillRepository billRepository,
+            CardRepository cardRepository) {
 
         this.paymentRepository = paymentRepository;
-        this.cardService = cardService;
+        this.billRepository = billRepository;
+        this.cardRepository = cardRepository;
     }
 
-    public Payment payBill(Bill bill) {
+    @Transactional
+    public void payBill(Long billId) {
 
-        Card card = bill.getCard();
+        // 1️⃣ Fetch bill
+        Bill bill = billRepository.findById(billId)
+                .orElseThrow(() -> new RuntimeException("Bill not found"));
 
-        // Restore full balance
-        card.setAvailableBalance(card.getCreditLimit());
-        cardService.updateCard(card);
+        // 2️⃣ Prevent double payment
+        if (bill.getStatus() == BillStatus.PAID) {
+            throw new RuntimeException("Bill already paid");
+        }
 
-        // Update bill
-        bill.setStatus(BillStatus.PAID);
-
-        // Create payment record
+        // 3️⃣ Create payment record
         Payment payment = new Payment();
         payment.setBill(bill);
         payment.setPaymentAmount(bill.getTotalAmount());
         payment.setPaymentDate(LocalDateTime.now());
         payment.setPaymentStatus(PaymentStatus.SUCCESS);
 
-        return paymentRepository.save(payment);
+        paymentRepository.save(payment);
+
+        // 4️⃣ Mark bill as PAID
+        bill.setStatus(BillStatus.PAID);
+        billRepository.save(bill);
+
+        // 5️⃣ Reactivate card and reset credit
+        Card card = bill.getCard();
+        card.setStatus(CardStatus.ACTIVE);
+        card.setAvailableBalance(card.getCreditLimit());
+        cardRepository.save(card);
     }
 }

@@ -32,9 +32,18 @@ public class BillingController {
         Card card = cardService.getCardById(cardId)
                 .orElseThrow(() -> new RuntimeException("Card not found"));
 
-        Bill bill = billingService.getOrCreateActiveBill(card);
+        Bill bill = billingService.getActiveBill(card);
         model.addAttribute("card", card); // ✅ ADD THIS LINE
         model.addAttribute("bill", bill);
         return "bill-details";
     }
+
+    @PostMapping("/generate/all")
+    public String generateAllBills() {
+
+        billingService.generateBillsForAllCards();
+
+        return "redirect:/banker/dashboard";
+    }
+
 }
