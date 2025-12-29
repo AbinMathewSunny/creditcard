@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>User Transaction History</title>
+</head>
+<body>
+<h2>User Transaction History</h2>
+
+<table border="1" width="100%">
+  <tr>
+    <th>Transaction ID</th>
+    <th>Card</th>
+    <th>Merchant</th>
+    <th>Amount</th>
+    <th>Status</th>
+    <th>Date</th>
+  </tr>
+
+  <tr th:each="txn : ${transactions.content}">
+    <td th:text="${txn.transactionId}"></td>
+    <td th:text="${txn.card.cardNumber}"></td>
+    <td th:text="${txn.merchantName}"></td>
+    <td th:text="${txn.amount}"></td>
+    <td th:text="${txn.status}"></td>
+    <td th:text="${#temporals.format(txn.transactionDate, 'dd-MM-yyyy HH:mm')}"></td>
+  </tr>
+</table>
+<div>
+  <a th:if="${transactions.hasPrevious()}"
+     th:href="@{|?page=${transactions.number - 1}|}">
+    ⬅ Previous
+  </a>
+
+  <span> Page <span th:text="${transactions.number + 1}"></span>
+        of <span th:text="${transactions.totalPages}"></span>
+    </span>
+
+  <a th:if="${transactions.hasNext()}"
+     th:href="@{|?page=${transactions.number + 1}|}">
+    Next ➡
+  </a>
+</div>
+</body>
+</html>

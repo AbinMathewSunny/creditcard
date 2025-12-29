@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Transaction History | CCMS</title>
+    <link
+            href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+            rel="stylesheet"
+    />
+    <link
+            rel="stylesheet"
+            href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css"
+    />
+    <style>
+        body {
+          background-color: #f8fafc;
+        }
+        .history-container {
+          margin-top: 40px;
+          background: white;
+          border-radius: 12px;
+          padding: 25px;
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Status and Dots Styling */
+        .status-pill {
+          padding: 4px 12px;
+          border-radius: 50px;
+          font-size: 0.8rem;
+          font-weight: 600;
+          white-space: nowrap;
+        }
+        .bg-success-light {
+          background-color: #dcfce7;
+          color: #166534;
+        }
+        .bg-danger-light {
+          background-color: #fee2e2;
+          color: #991b1b;
+        }
+
+        .btn-dots {
+          border: none;
+          background: transparent;
+          color: #64748b;
+          font-size: 1.1rem;
+          padding: 0 5px;
+        }
+        .dropdown-toggle::after {
+          display: none;
+        }
+
+        /* Fix for dropdown being cut off inside responsive tables */
+        .table-responsive {
+          overflow: inherit !important;
+        }
+        .dropdown-menu {
+          z-index: 1050;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+          border: 1px solid #e2e8f0;
+        }
+
+        /* Narrowing the last two columns */
+        .col-status {
+          width: 100px;
+          text-align: right;
+        }
+        .col-action {
+          width: 40px;
+          text-align: center;
+        }
+    </style>
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container">
+        <a class="navbar-brand" th:href="@{/user/dashboard}">CCMS</a>
+        <div class="navbar-nav">
+            <a class="nav-link" href="transaction.html">New Transaction</a>
+            <a class="nav-link active" href="transaction-history.html">History</a>
+        </div>
+    </div>
+</nav>
+
+<div class="container">
+    <div class="history-container">
+        <h4 class="mb-4 fw-bold">Recent Activity</h4>
+
+        <div class="table-responsive">
+            <table class="table align-middle table-hover">
+                <thead class="bg-light">
+                <tr>
+                    <th class="ps-3">Date</th>
+                    <th>Merchant</th>
+                    <th>Amount</th>
+                    <th class="col-status text-end">Status</th>
+                    <th class="col-action"></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="txn:${transactions}">
+                    <td class="ps-3 text-muted" th:text="${#temporals.format(txn.transactionDate, 'MMM dd, yyyy')}">TXN-9921</td>
+                    <td class="fw-semibold" th:text="${txn.merchantName}">Apple Store</td>
+                    <td class="fw-bold" th:text="${#numbers.formatCurrency(txn.amount)}">$1,299.00</td>
+                    <td class="col-status text-end">
+                        <span class="status-pill bg-success-light" th:text="${txn.status}">SUCCESS</span>
+                    </td>
+                    <td class="col-action">
+                        <div class="dropdown">
+                            <button
+                                    class="btn btn-dots dropdown-toggle"
+                                    type="button"
+                                    data-bs-toggle="dropdown"
+                                    aria-expanded="false"
+                            >
+                                <i class="bi bi-three-dots-vertical"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li>
+                                    <a
+                                            class="dropdown-item text-danger"
+                                            href="report-transaction.html?id=TXN-9921"
+                                    >
+                                        <i class="bi bi-exclamation-triangle me-2"></i>Report
+                                        Issue
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="#"
+                                    ><i class="bi bi-receipt me-2"></i>View Receipt</a
+                                    >
+                                </li>
+                            </ul>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -21,6 +21,12 @@
 
 <br><br>
 
+<a th:href="@{/transactions/history/{id}(id=${card.cardId})}">
+     Transaction History
+</a>
+
+<br><br>
+
 <a th:href="@{/billing/current/{id}(id=${card.cardId})}">
     View Current Bill
 </a>
