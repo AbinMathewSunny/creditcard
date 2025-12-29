@@ -12,4 +12,7 @@ public interface BillRepository extends JpaRepository<Bill, Long> {
     List<Bill> findByCard(Card card);
 
     Optional<Bill> findByCardAndStatus(Card card, org.example.creditcard.model.enums.BillStatus status);
+
+    List<Bill> findByCardOrderByBillingDateDesc(Card card);
+
 }

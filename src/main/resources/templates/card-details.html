@@ -67,6 +67,12 @@
         </div>
     </div>
 
+
+    <a th:href="@{/billing/history/{cardId}(cardId=${card.cardId})}"
+       class="btn btn-outline-primary mt-3">
+        View Bill History
+    </a>
+
     <footer class="text-center text-muted small mt-3">Secure actions • All amounts shown in INR</footer>
 </main>
 

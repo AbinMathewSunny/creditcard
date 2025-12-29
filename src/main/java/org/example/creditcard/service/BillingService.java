@@ -88,4 +88,13 @@ public class BillingService {
         return billRepository.findById(billId)
                 .orElseThrow(() -> new RuntimeException("Bill not found"));
     }
+
+    public List<Bill> getBillsForCard(Long cardId) {
+
+        Card card = cardRepository.findById(cardId)
+                .orElseThrow(() -> new RuntimeException("Card not found"));
+
+        return billRepository.findByCardOrderByBillingDateDesc(card);
+    }
+
 }

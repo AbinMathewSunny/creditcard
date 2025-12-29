@@ -8,6 +8,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @Controller
 @RequestMapping("/billing")
 public class BillingController {
@@ -45,5 +47,19 @@ public class BillingController {
 
         return "redirect:/banker/dashboard";
     }
+
+    @GetMapping("/history/{cardId}")
+    public String billHistory(
+            @PathVariable Long cardId,
+            Model model) {
+
+        List<Bill> bills = billingService.getBillsForCard(cardId);
+
+        model.addAttribute("bills", bills);
+        model.addAttribute("cardId", cardId);
+
+        return "billing-history";
+    }
+
 
 }
