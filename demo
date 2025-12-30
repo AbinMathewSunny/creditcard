@@ -1,0 +1,238 @@
+
+package org.example.creditcard.model.entity;
+
+import jakarta.persistence.*;
+import org.example.creditcard.model.enums.CardStatus;
+import org.example.creditcard.model.enums.CardType;
+
+import java.math.BigDecimal;
+import java.util.List;
+
+@Entity
+@Table(name = "card")
+public class Card {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long cardId;
+
+    // Generated only after approval
+    @Column(unique = true, nullable = true)
+    private String cardNumber;
+
+    @Enumerated(EnumType.STRING)
+    private CardType cardType;
+
+    private BigDecimal creditLimit;
+    private BigDecimal availableBalance;
+
+    @Enumerated(EnumType.STRING)
+    private CardStatus status;
+
+    // Application details
+    @Column(nullable = false, length = 10)
+    private String panNumber;
+
+    @Column(nullable = false)
+    private String address;
+
+    @Column(nullable = false)
+    private String city;
+
+    @Column(nullable = false)
+    private String state;
+
+    @Column(nullable = false, length = 6)
+    private String pincode;
+
+    // Relations
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User user;
+
+    @OneToMany(mappedBy = "card", cascade = CascadeType.ALL)
+    private List<Transaction> transactions;
+
+    @OneToMany(mappedBy = "card", cascade = CascadeType.ALL)
+    private List<Bill> bills;
+
+    // Getters & setters (generate using IDE)
+}
+
+
+
+
+package org.example.creditcard.repository;
+
+import org.example.creditcard.model.entity.Card;
+import org.example.creditcard.model.enums.CardStatus;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.List;
+
+public interface CardRepository extends JpaRepository<Card, Long> {
+
+    List<Card> findByStatus(CardStatus status);
+
+    List<Card> findByUser_UserId(Long userId);
+}
+
+
+
+package org.example.creditcard.service;
+
+import org.example.creditcard.model.entity.Card;
+import org.example.creditcard.model.entity.User;
+import org.example.creditcard.model.enums.CardStatus;
+import org.example.creditcard.repository.CardRepository;
+import org.example.creditcard.repository.UserRepository;
+import org.springframework.stereotype.Service;
+
+import java.math.BigDecimal;
+import java.util.List;
+
+@Service
+public class CardService {
+
+    private final CardRepository cardRepository;
+    private final UserRepository userRepository;
+
+    public CardService(CardRepository cardRepository,
+                       UserRepository userRepository) {
+        this.cardRepository = cardRepository;
+        this.userRepository = userRepository;
+    }
+
+    // CUSTOMER applies
+    public void applyForCard(Card card, String username) {
+
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        card.setUser(user);
+        card.setCardNumber(null);
+        card.setStatus(CardStatus.PENDING);
+        card.setAvailableBalance(BigDecimal.ZERO);
+
+        cardRepository.save(card);
+    }
+
+    // BANKER approves
+    public void approveCard(Long cardId) {
+
+        Card card = cardRepository.findById(cardId)
+                .orElseThrow(() -> new RuntimeException("Card not found"));
+
+        card.setCardNumber(generateCardNumber());
+        card.setAvailableBalance(card.getCreditLimit());
+        card.setStatus(CardStatus.ACTIVE);
+
+        cardRepository.save(card);
+    }
+
+    public List<Card> getPendingCards() {
+        return cardRepository.findByStatus(CardStatus.PENDING);
+    }
+
+    private String generateCardNumber() {
+        return "4111" + System.currentTimeMillis();
+    }
+}
+
+
+
+
+
+package org.example.creditcard.service;
+
+import org.example.creditcard.model.entity.Card;
+import org.example.creditcard.model.entity.User;
+import org.example.creditcard.model.enums.CardStatus;
+import org.example.creditcard.repository.CardRepository;
+import org.example.creditcard.repository.UserRepository;
+import org.springframework.stereotype.Service;
+
+import java.math.BigDecimal;
+import java.util.List;
+
+@Service
+public class CardService {
+
+    private final CardRepository cardRepository;
+    private final UserRepository userRepository;
+
+    public CardService(CardRepository cardRepository,
+                       UserRepository userRepository) {
+        this.cardRepository = cardRepository;
+        this.userRepository = userRepository;
+    }
+
+    // CUSTOMER applies
+    public void applyForCard(Card card, String username) {
+
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        card.setUser(user);
+        card.setCardNumber(null);
+        card.setStatus(CardStatus.PENDING);
+        card.setAvailableBalance(BigDecimal.ZERO);
+
+        cardRepository.save(card);
+    }
+
+    // BANKER approves
+    public void approveCard(Long cardId) {
+
+        Card card = cardRepository.findById(cardId)
+                .orElseThrow(() -> new RuntimeException("Card not found"));
+
+        card.setCardNumber(generateCardNumber());
+        card.setAvailableBalance(card.getCreditLimit());
+        card.setStatus(CardStatus.ACTIVE);
+
+        cardRepository.save(card);
+    }
+
+    public List<Card> getPendingCards() {
+        return cardRepository.findByStatus(CardStatus.PENDING);
+    }
+
+    private String generateCardNumber() {
+        return "4111" + System.currentTimeMillis();
+    }
+}
+
+
+
+if (card.getStatus() != CardStatus.ACTIVE) {
+    throw new RuntimeException("Card is not active");
+}
+
+
+
+
+@Controller
+@RequestMapping("/cards")
+public class CardController {
+
+    private final CardService cardService;
+
+    public CardController(CardService cardService) {
+        this.cardService = cardService;
+    }
+
+    @GetMapping("/apply")
+    public String applyForm(Model model) {
+        model.addAttribute("card", new Card());
+        return "apply-card";
+    }
+
+    @PostMapping("/apply")
+    public String apply(@ModelAttribute Card card,
+                        @AuthenticationPrincipal UserDetails user) {
+
+        cardService.applyForCard(card, user.getUsername());
+        return "redirect:/customer/dashboard";
+    }
+}
