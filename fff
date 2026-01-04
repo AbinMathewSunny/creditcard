@@ -1,0 +1,292 @@
+package org.example.creditcard.model.entity;
+
+import jakarta.persistence.*;
+import java.time.LocalDateTime;
+
+@Entity
+@Table(name = "notification")
+public class Notification {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long notificationId;
+
+    @Column(nullable = false)
+    private String message;
+
+    @Column(nullable = false)
+    private boolean read = false;
+
+    @Column(nullable = false)
+    private LocalDateTime createdAt;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User user;
+
+    // getters & setters
+
+    public Long getNotificationId() {
+        return notificationId;
+    }
+
+    public void setNotificationId(Long notificationId) {
+        this.notificationId = notificationId;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
+    public boolean isRead() {
+        return read;
+    }
+
+    public void setRead(boolean read) {
+        this.read = read;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
+}
+
+
+
+
+
+
+@OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+private List<Notification> notifications;
+
+
+
+
+
+
+
+
+package org.example.creditcard.repository;
+
+import org.example.creditcard.model.entity.Notification;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.List;
+
+public interface NotificationRepository extends JpaRepository<Notification, Long> {
+
+    List<Notification> findByUser_UserIdOrderByCreatedAtDesc(Long userId);
+
+    long countByUser_UserIdAndReadFalse(Long userId);
+}
+
+
+
+
+
+
+
+package org.example.creditcard.service;
+
+import org.example.creditcard.model.entity.Notification;
+import org.example.creditcard.model.entity.User;
+import org.example.creditcard.repository.NotificationRepository;
+import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+@Service
+public class NotificationService {
+
+    private final NotificationRepository notificationRepository;
+
+    public NotificationService(NotificationRepository notificationRepository) {
+        this.notificationRepository = notificationRepository;
+    }
+
+    // Create notification
+    public void notifyUser(User user, String message) {
+
+        Notification notification = new Notification();
+        notification.setUser(user);
+        notification.setMessage(message);
+        notification.setCreatedAt(LocalDateTime.now());
+        notification.setRead(false);
+
+        notificationRepository.save(notification);
+    }
+
+    // Fetch notifications
+    public List<Notification> getUserNotifications(Long userId) {
+        return notificationRepository
+                .findByUser_UserIdOrderByCreatedAtDesc(userId);
+    }
+
+    // Count unread
+    public long getUnreadCount(Long userId) {
+        return notificationRepository
+                .countByUser_UserIdAndReadFalse(userId);
+    }
+
+    // Mark ALL as read
+    public void markAllAsRead(Long userId) {
+
+        List<Notification> notifications =
+                notificationRepository.findByUser_UserIdOrderByCreatedAtDesc(userId);
+
+        for (Notification n : notifications) {
+            if (!n.isRead()) {
+                n.setRead(true);
+            }
+        }
+
+        notificationRepository.saveAll(notifications);
+    }
+}
+
+
+
+
+
+
+
+package org.example.creditcard.controller;
+
+import org.example.creditcard.model.entity.User;
+import org.example.creditcard.repository.UserRepository;
+import org.example.creditcard.service.NotificationService;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+@Controller
+@RequestMapping("/notifications")
+public class NotificationController {
+
+    private final NotificationService notificationService;
+    private final UserRepository userRepository;
+
+    public NotificationController(NotificationService notificationService,
+                                  UserRepository userRepository) {
+        this.notificationService = notificationService;
+        this.userRepository = userRepository;
+    }
+
+    @GetMapping
+    public String viewNotifications(
+            @AuthenticationPrincipal UserDetails userDetails,
+            Model model) {
+
+        User user = userRepository.findByUsername(userDetails.getUsername())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Mark all as read
+        notificationService.markAllAsRead(user.getUserId());
+
+        model.addAttribute(
+                "notifications",
+                notificationService.getUserNotifications(user.getUserId())
+        );
+
+        return "notifications";
+    }
+}
+
+
+
+
+
+
+
+
+notificationService.notifyUser(
+        card.getUser(),
+        "🎉 Your credit card has been APPROVED."
+);
+notificationService.notifyUser(
+        card.getUser(),
+        "❌ Your credit card application was REJECTED."
+);
+notificationService.notifyUser(
+        card.getUser(),
+        "📄 Your monthly bill has been generated. Amount: ₹" + bill.getTotalAmount()
+);
+notificationService.notifyUser(
+        bill.getCard().getUser(),
+        "✅ Payment successful. Your card is ACTIVE again."
+);
+
+
+
+
+
+
+
+
+
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Notifications</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+
+<div class="container mt-4">
+    <h3>Notifications</h3>
+
+    <div th:if="${#lists.isEmpty(notifications)}">
+        <p>No notifications available</p>
+    </div>
+
+    <ul class="list-group">
+        <li th:each="n : ${notifications}"
+            class="list-group-item"
+            th:classappend="${!n.read} ? 'fw-bold'">
+
+            <span th:text="${n.message}"></span>
+            <br>
+            <small class="text-muted"
+                   th:text="${#temporals.format(n.createdAt, 'dd MMM yyyy HH:mm')}">
+            </small>
+        </li>
+    </ul>
+</div>
+
+</body>
+</html>
+
+
+
+
+model.addAttribute(
+    "unreadCount",
+    notificationService.getUnreadCount(user.getUserId())
+);
+
+
+<a href="/notifications">
+    🔔 <span th:text="${unreadCount}"></span>
+</a>
+
+
